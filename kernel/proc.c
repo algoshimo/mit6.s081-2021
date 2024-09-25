@@ -292,6 +292,7 @@ fork(void)
   // copy saved user registers.
   *(np->trapframe) = *(p->trapframe);
 
+
   // Cause fork to return 0 in the child.
   np->trapframe->a0 = 0;
 
@@ -314,7 +315,7 @@ fork(void)
   acquire(&np->lock);
   np->state = RUNNABLE;
   release(&np->lock);
-
+  np->trace_mask = p->trace_mask;
   return pid;
 }
 
@@ -528,7 +529,7 @@ forkret(void)
 void
 sleep(void *chan, struct spinlock *lk)
 {
-  struct proc *p = myproc();
+  struct proc *p = myproc();  //获取当前正在运行的进程
   
   // Must acquire p->lock in order to
   // change p->state and then call sched.
@@ -544,7 +545,7 @@ sleep(void *chan, struct spinlock *lk)
   p->chan = chan;
   p->state = SLEEPING;
 
-  sched();
+  sched();  //调用调度程序，切换到其他进程运行
 
   // Tidy up.
   p->chan = 0;
@@ -595,6 +596,22 @@ kill(int pid)
   }
   return -1;
 }
+
+// int trace(int sys_mask)
+// {
+//     int sys_id = 0;
+//     int mask = sys_mask;
+//     while(mask>1)
+//     {
+//       mask>>=1;
+//       sys_id++;
+//     }
+
+//     char *sys[] = {"", "fork", "exit", "wait", "pipe", "read"};
+//     int proc_pid = myproc()->pid;
+//     printf("%d: syscall %s -> %d",proc_pid,sys[sys_id],myproc()->trapframe->a0);
+//     return sys_id;
+// }
 
 // Copy to either a user address, or kernel address,
 // depending on usr_dst.
@@ -653,4 +670,21 @@ procdump(void)
     printf("%d %s %s", p->pid, state, p->name);
     printf("\n");
   }
+}
+
+int cal_nproc()
+{
+  struct proc *p;
+  int count = 0;
+
+  // 遍历全局进程表
+  for (p = proc; p < &proc[NPROC]; p++) {
+    // 如果进程的状态不是 UNUSED，则增加计数
+    if (p->state != UNUSED) {
+      count++;
+    }
+  }
+
+  // 返回非 UNUSED 进程的数量
+  return count;
 }
