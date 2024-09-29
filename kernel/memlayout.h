@@ -20,7 +20,7 @@
 // qemu puts UART registers here in physical memory.
 #define UART0 0x10000000L
 #define UART0_IRQ 10
-
+#define LAB_PGTBL 1
 // virtio mmio interface
 #define VIRTIO0 0x10001000
 #define VIRTIO0_IRQ 1
@@ -53,7 +53,7 @@
 
 // map the trampoline page to the highest address,
 // in both user and kernel space.
-#define TRAMPOLINE (MAXVA - PGSIZE)
+#define TRAMPOLINE (MAXVA - PGSIZE) //用户地址空间最高处的一页，专门用于从用户模式跳转到内核模式。系统调用或中断发生时，控制权会转移到这个位置。
 
 // map kernel stacks beneath the trampoline,
 // each surrounded by invalid guard pages.
@@ -69,11 +69,11 @@
 //   USYSCALL (shared with kernel)
 //   TRAPFRAME (p->trapframe, used by the trampoline)
 //   TRAMPOLINE (the same page as in the kernel)
-#define TRAPFRAME (TRAMPOLINE - PGSIZE)
+#define TRAPFRAME (TRAMPOLINE - PGSIZE)  //陷阱帧（trapframe）的地址。陷阱帧用于保存 CPU 状态（如寄存器内容）在中断或系统调用时的状态
 #ifdef LAB_PGTBL
-#define USYSCALL (TRAPFRAME - PGSIZE)
+#define USYSCALL (TRAPFRAME - PGSIZE)    //与内核共享的页
 
-struct usyscall {
+struct usyscall {  //系统调用相关数据
   int pid;  // Process ID
 };
 #endif

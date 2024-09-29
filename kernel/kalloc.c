@@ -23,8 +23,7 @@ struct {
   struct run *freelist;
 } kmem;
 
-void
-kinit()
+void kinit()
 {
   initlock(&kmem.lock, "kmem");
   freerange(end, (void*)PHYSTOP);

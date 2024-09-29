@@ -17,7 +17,7 @@ extern char trampoline[]; // trampoline.S
 
 // Make a direct-map page table for the kernel.
 pagetable_t
-kvmmake(void)
+kvmmake(void)  //映射各种硬件设备
 {
   pagetable_t kpgtbl;
 
@@ -431,4 +431,54 @@ copyinstr(pagetable_t pagetable, char *dst, uint64 srcva, uint64 max)
   } else {
     return -1;
   }
+}
+
+
+// void
+// freewalk(pagetable_t pagetable)
+// {
+//   // there are 2^9 = 512 PTEs in a page table.
+//   for(int i = 0; i < 512; i++){
+//     pte_t pte = pagetable[i];
+//     if((pte & PTE_V) && (pte & (PTE_R|PTE_W|PTE_X)) == 0){
+//       // this PTE points to a lower-level page table.
+//       uint64 child = PTE2PA(pte);
+//       freewalk((pagetable_t)child);
+//       pagetable[i] = 0;
+//     } else if(pte & PTE_V){
+//       panic("freewalk: leaf");
+//     }
+//   }
+//   kfree((void*)pagetable);
+// }
+
+void vmprintpage(pagetable_t p,int num)
+{
+  if(num == 4) return ;
+  for(int i=0;i<512;i++)
+  {
+    pte_t pte = p[i];
+
+    for(int i=0;i<num;i++) printf(".. ");
+    uint64 child = PTE2PA(pte);
+    printf("%d: pte %p pa %p\n",i,pte,child);
+
+    if((pte & PTE_V) && (pte & (PTE_R|PTE_W|PTE_X)) == 0)
+    {
+      vmprintpage((pagetable_t) child , num+1);
+    }
+    
+  }
+}
+
+void vmprint(pagetable_t p)
+{
+
+  printf("page table %p\n",p);
+  vmprintpage(p,1);
+  // for(int i=0;i<512;i++)
+  // {
+  //   pte_t pte = p[i];
+  //   printf("%d: pte %p pa %p\n",i,p+i,PTE2PA(pte));
+  // }
 }
