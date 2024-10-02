@@ -298,6 +298,9 @@ QEMUOPTS += -netdev user,id=net0,hostfwd=udp::$(FWDPORT)-:2000 -object filter-du
 QEMUOPTS += -device e1000,netdev=net0,bus=pcie.0
 endif
 
+gdb:
+	riscv64-unknown-elf-gdb kernel/kernel
+
 qemu: $K/kernel fs.img
 	$(QEMU) $(QEMUOPTS)
 
