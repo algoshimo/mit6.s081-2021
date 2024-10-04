@@ -38,7 +38,7 @@ usertrap(void)
 {
   int which_dev = 0;
 
-  if((r_sstatus() & SSTATUS_SPP) != 0)
+  if((r_sstatus() & SSTATUS_SPP) != 0)  //该位不是0，说明陷阱来自内核态而非用户态
     panic("usertrap: not from user mode");
 
   // send interrupts and exceptions to kerneltrap(),
@@ -78,7 +78,18 @@ usertrap(void)
 
   // give up the CPU if this is a timer interrupt.
   if(which_dev == 2)
+  {
+    p->ticks++;
+    if(p->ticks % p->interval == 0 && p->is_handler == 0) 
+    {
+      printf("alarm!\n");
+      memmove(p->saved_trapframe,p->trapframe,PGSIZE);
+      p->trapframe->epc = p->handler;
+      p->is_handler = 1;
+    }
+    
     yield();
+  }
 
   usertrapret();
 }

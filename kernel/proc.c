@@ -119,9 +119,19 @@ allocproc(void)
 found:
   p->pid = allocpid();
   p->state = USED;
+  p->interval = 0;
+  p->ticks = 0;
+  p->is_handler = 0;
+  p->handler = 0;
 
   // Allocate a trapframe page.
   if((p->trapframe = (struct trapframe *)kalloc()) == 0){
+    freeproc(p);
+    release(&p->lock);
+    return 0;
+  }
+
+  if((p->saved_trapframe = (struct trapframe *)kalloc()) == 0){
     freeproc(p);
     release(&p->lock);
     return 0;
@@ -472,7 +482,7 @@ scheduler(void)
 // break in the few places where a lock is held but
 // there's no process.
 void
-sched(void)
+sched(void)   //调度器会在当前进程需要让出 CPU 时调用。
 {
   int intena;
   struct proc *p = myproc();
