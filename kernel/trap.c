@@ -94,7 +94,7 @@ usertrap(void)
 
       memmove((void*)ka,(void*)pa,PGSIZE);
       kfree((void*)pa);
-      *pte = PA2PTE(ka) | (flag & ~PTE_COW) | PTE_W ;
+      *pte = (PA2PTE(ka) | (flag & ~PTE_COW) | PTE_W );
     }
     else {
     printf("usertrap(): unexpected scause %p pid=%d\n", r_scause(), p->pid);
