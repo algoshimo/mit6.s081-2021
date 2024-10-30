@@ -199,8 +199,14 @@ ialloc(uint dev, short type)
   struct buf *bp;
   struct dinode *dip;
 
+  //遍历所有 inode，直到超级块 sb 中的 ninodes（即最大 inode 数量）为止
   for(inum = 1; inum < sb.ninodes; inum++){
-    bp = bread(dev, IBLOCK(inum, sb));
+    //IBLOCK(inum, sb) 计算出包含 inum 的块号
+    //bread 读取包含编号为 inum 的 inode 的磁盘块，将其存入缓冲区 bp 中
+    bp = bread(dev, IBLOCK(inum, sb));  
+
+    //将 dip 指向 bp 缓冲区中的第 inum % IPB 个磁盘 inode
+    //IPB 表示每个磁盘块中的 inode 数量
     dip = (struct dinode*)bp->data + inum%IPB;
     if(dip->type == 0){  // a free inode
       memset(dip, 0, sizeof(*dip));
